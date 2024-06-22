@@ -1,0 +1,40 @@
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+    <TextView
+            android:id="@+id/dayOfWeek"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Monday"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"/>
+
+    <ImageView
+            android:id="@+id/weatherIcon"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:contentDescription="Weather Icon"
+            android:src="@drawable/pressure"/>
+
+    <TextView
+            android:id="@+id/maxTemp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Max: 30°C"
+            android:textSize="14sp"
+            android:textColor="#FFFFFF"/>
+
+    <TextView
+            android:id="@+id/minTemp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Min: 20°C"
+            android:textSize="14sp"
+            android:textColor="#FFFFFF"/>
+
+</LinearLayout>
