@@ -99,9 +99,9 @@ class MainActivity : AppCompatActivity() {
         thread {
             try {
                 val response = URL("https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$API_KEY&units=metric").readText()
-                val responseDaily = URL("https://api.openweathermap.org/data/2.5/forecast/daily?lat=$latitude&lon=$longitude&appid=$API_KEY").readText()
+                //val responseDaily = URL("https://api.openweathermap.org/data/2.5/forecast/daily?lat=$latitude&lon=$longitude&appid=$API_KEY").readText()
                 val jsonObj = JSONObject(response)
-                val jsonResponse = JSONObject(responseDaily)
+                //val jsonResponse = JSONObject(responseDaily)
 
                 val main = jsonObj.getJSONObject("main")
                 val weather = jsonObj.getJSONArray("weather").getJSONObject(0)
@@ -134,14 +134,14 @@ class MainActivity : AppCompatActivity() {
                     weatherIcon!!.setImageResource(getWeatherIcon(status))
 
                     // Parse hourly forecast and set it to RecyclerView
-                    if (jsonResponse.has("daily")) {
+                  /*  if (jsonResponse.has("daily")) {
                         val forecastList = parseDailyForecast(jsonResponse)
                         val recyclerView: RecyclerView = findViewById(R.id.RvWeather)
                         recyclerView.adapter = WeatherForecastAdapter(forecastList)
                         recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
                     } else {
                         Log.e("MainActivity", "No hourly forecast data available")
-                    }
+                    }*/
                 }
 
             } catch (e: Exception) {
