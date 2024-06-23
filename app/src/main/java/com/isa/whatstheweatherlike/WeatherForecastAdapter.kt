@@ -33,8 +33,8 @@ class WeatherForecastAdapter(private val forecastList: List<ForecastItem>) : Rec
 
     private fun getWeatherIcon(status: String): Int {
         return when (status.toLowerCase()) {
-            "clear sky" -> R.drawable.ic_clear_sky
-            "few clouds" -> R.drawable.ic_few_clouds
+            "clear sky" -> R.drawable.ic_clear_sky_day
+            "few clouds" -> R.drawable.ic_few_clouds_day
             "scattered clouds" -> R.drawable.ic_scattered_clouds
             "broken clouds" -> R.drawable.ic_broken_clouds
             "shower rain" -> R.drawable.ic_shower_rain
@@ -42,7 +42,7 @@ class WeatherForecastAdapter(private val forecastList: List<ForecastItem>) : Rec
             "thunderstorm" -> R.drawable.ic_thunderstorm
             "snow" -> R.drawable.ic_snow
             "mist" -> R.drawable.ic_mist
-            else -> R.drawable.ic_few_clouds
+            else -> R.drawable.ic_few_clouds_day
         }
     }
 }

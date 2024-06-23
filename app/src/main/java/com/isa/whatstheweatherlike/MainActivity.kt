@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -19,7 +20,6 @@ import org.json.JSONObject
 import java.net.URL
 import kotlin.concurrent.thread
 
-
 class MainActivity : AppCompatActivity() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -30,30 +30,34 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var tvAppName: TextView? = null
-    private var tvAddress:android.widget.TextView? = null
-    private var tvUpdatedAt:android.widget.TextView? = null
-    private var tvStatus:android.widget.TextView? = null
-    private var tvTemp:android.widget.TextView? = null
-    private var tvTempMin:android.widget.TextView? = null
-    private var tvTempMax:android.widget.TextView? = null
-    private var tvHumidity:android.widget.TextView? = null
-    private var tvPressure:android.widget.TextView? = null
-    private var tvWind:android.widget.TextView? = null
+    private var tvAddress: TextView? = null
+    private var tvUpdatedAt: TextView? = null
+    private var tvStatus: TextView? = null
+    private var tvTemp: TextView? = null
+    private var tvTempMin: TextView? = null
+    private var tvTempMax: TextView? = null
+    private var tvHumidity: TextView? = null
+    private var tvPressure: TextView? = null
+    private var tvWind: TextView? = null
     private var weatherIcon: ImageView? = null
+
+    private var sunriseTime: Long = 0
+    private var sunsetTime: Long = 0
 
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
-        tvAppName = findViewById(R.id.tv_app_name);
-        tvAddress = findViewById(R.id.address);
-        tvUpdatedAt = findViewById(R.id.updated_at);
-        tvStatus = findViewById(R.id.status);
-        tvTemp = findViewById(R.id.temp);
-        tvTempMin = findViewById(R.id.temp_min);
-        tvTempMax = findViewById(R.id.temp_max);
-        weatherIcon = findViewById(R.id.weather_icon);
+        tvAppName = findViewById(R.id.tv_app_name)
+        tvAddress = findViewById(R.id.address)
+        tvUpdatedAt = findViewById(R.id.updated_at)
+        tvStatus = findViewById(R.id.status)
+        tvTemp = findViewById(R.id.temp)
+        tvTempMin = findViewById(R.id.temp_min)
+        tvTempMax = findViewById(R.id.temp_max)
+        weatherIcon = findViewById(R.id.weather_icon)
         tvHumidity = findViewById(R.id.humidity)
         tvPressure = findViewById(R.id.preasure)
         tvWind = findViewById(R.id.wind)
@@ -118,6 +122,8 @@ class MainActivity : AppCompatActivity() {
                 val city = jsonObj.getString("name")
                 val country = sys.getString("country")
                 val updatedAt = jsonObj.getLong("dt")
+                sunriseTime = sys.getLong("sunrise")
+                sunsetTime = sys.getLong("sunset")
 
                 runOnUiThread {
                     tvAppName!!.text = getString(R.string.app_name)
@@ -130,7 +136,7 @@ class MainActivity : AppCompatActivity() {
                     tvPressure!!.text = "$pressure hPa"
                     tvHumidity!!.text = "$humidity %"
                     tvWind!!.text = "$windSpeed m/s"
-                    weatherIcon!!.setImageResource(getWeatherIcon(status))
+                    weatherIcon!!.setImageResource(getWeatherIcon(status, updatedAt))
 
                     // Parse daily forecast and set it to RecyclerView
                     if (jsonResponse.has("list")) {
@@ -160,18 +166,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun getWeatherIcon(status: String): Int {
+    private fun getWeatherIcon(status: String, timestamp: Long): Int {
+        val isDayTime = timestamp in sunriseTime until sunsetTime
         return when (status.toLowerCase()) {
-            "clear sky" -> R.drawable.ic_clear_sky
-            "few clouds" -> R.drawable.ic_few_clouds
-            "scattered clouds" -> R.drawable.ic_scattered_clouds
-            "broken clouds" -> R.drawable.ic_broken_clouds
-            "shower rain" -> R.drawable.ic_shower_rain
-            "rain" -> R.drawable.ic_rain
-            "thunderstorm" -> R.drawable.ic_thunderstorm
-            "snow" -> R.drawable.ic_snow
-            "mist" -> R.drawable.ic_mist
-            else -> R.drawable.ic_few_clouds
+            "clear sky" -> if (isDayTime) R.drawable.ic_clear_sky_day else R.drawable.ic_clear_sky_night
+            "few clouds" -> if (isDayTime) R.drawable.ic_few_clouds_day else R.drawable.ic_few_clouds_night
+            "scattered clouds" -> if (isDayTime) R.drawable.ic_scattered_clouds else R.drawable.ic_scattered_clouds
+            "broken clouds" -> if (isDayTime) R.drawable.ic_broken_clouds else R.drawable.ic_broken_clouds
+            "shower rain" -> if (isDayTime) R.drawable.ic_shower_rain else R.drawable.ic_shower_rain
+            "rain" -> if (isDayTime) R.drawable.ic_rain else R.drawable.ic_rain
+            "thunderstorm" -> if (isDayTime) R.drawable.ic_thunderstorm else R.drawable.ic_thunderstorm
+            "snow" -> if (isDayTime) R.drawable.ic_snow else R.drawable.ic_snow
+            "mist" -> if (isDayTime) R.drawable.ic_mist else R.drawable.ic_mist
+            else -> if (isDayTime) R.drawable.ic_few_clouds_day else R.drawable.ic_few_clouds_night
         }
     }
 
@@ -203,8 +210,4 @@ class MainActivity : AppCompatActivity() {
 
         return forecastList
     }
-
-
-
-
 }
