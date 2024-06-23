@@ -2,10 +2,12 @@ package com.isa.whatstheweatherlike
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Bundle
-import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -80,22 +82,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkLocationPermission(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun requestLocationPermission() {
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-            LOCATION_PERMISSION_REQUEST_CODE
-        )
+        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
+    }
+
+    private fun isNetworkAvailable(): Boolean {
+        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkInfo = connectivityManager.activeNetworkInfo
+        return networkInfo != null && networkInfo.isConnected
     }
 
     @SuppressLint("MissingPermission")
     private fun fetchLocationAndWeather() {
+        if (!isNetworkAvailable()) {
+            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         fusedLocationClient.lastLocation
             .addOnCompleteListener { task: Task<Location> ->
                 val location: Location? = task.result
