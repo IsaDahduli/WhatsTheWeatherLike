@@ -42,9 +42,8 @@ class WeatherForecastAdapter(private val forecastList: List<ForecastItem>) : Rec
             "thunderstorm" -> R.drawable.ic_thunderstorm
             "snow" -> R.drawable.ic_snow
             "mist" -> R.drawable.ic_mist
-            else -> R.mipmap.ic_launcher
+            else -> R.drawable.ic_few_clouds
         }
     }
 }
-
 

@@ -99,9 +99,9 @@ class MainActivity : AppCompatActivity() {
         thread {
             try {
                 val response = URL("https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$API_KEY&units=metric").readText()
-                //val responseDaily = URL("https://api.openweathermap.org/data/2.5/forecast/daily?lat=$latitude&lon=$longitude&appid=$API_KEY").readText()
+                val responseForecast = URL("https://api.openweathermap.org/data/2.5/forecast?lat=$latitude&lon=$longitude&appid=$API_KEY&units=metric").readText()
                 val jsonObj = JSONObject(response)
-                //val jsonResponse = JSONObject(responseDaily)
+                val jsonResponse = JSONObject(responseForecast)
 
                 val main = jsonObj.getJSONObject("main")
                 val weather = jsonObj.getJSONArray("weather").getJSONObject(0)
@@ -119,7 +119,6 @@ class MainActivity : AppCompatActivity() {
                 val country = sys.getString("country")
                 val updatedAt = jsonObj.getLong("dt")
 
-
                 runOnUiThread {
                     tvAppName!!.text = getString(R.string.app_name)
                     tvAddress!!.text = "$city, $country"
@@ -133,15 +132,15 @@ class MainActivity : AppCompatActivity() {
                     tvWind!!.text = "$windSpeed m/s"
                     weatherIcon!!.setImageResource(getWeatherIcon(status))
 
-                    // Parse hourly forecast and set it to RecyclerView
-                  /*  if (jsonResponse.has("daily")) {
+                    // Parse daily forecast and set it to RecyclerView
+                    if (jsonResponse.has("list")) {
                         val forecastList = parseDailyForecast(jsonResponse)
                         val recyclerView: RecyclerView = findViewById(R.id.RvWeather)
                         recyclerView.adapter = WeatherForecastAdapter(forecastList)
                         recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
                     } else {
-                        Log.e("MainActivity", "No hourly forecast data available")
-                    }*/
+                        Log.e("MainActivity", "No forecast data available")
+                    }
                 }
 
             } catch (e: Exception) {
@@ -172,22 +171,32 @@ class MainActivity : AppCompatActivity() {
             "thunderstorm" -> R.drawable.ic_thunderstorm
             "snow" -> R.drawable.ic_snow
             "mist" -> R.drawable.ic_mist
-            else -> R.mipmap.ic_launcher
+            else -> R.drawable.ic_few_clouds
         }
     }
 
     private fun parseDailyForecast(jsonResponse: JSONObject): List<ForecastItem> {
         val forecastList = mutableListOf<ForecastItem>()
 
-        // Assuming your JSON has a field "daily" which is an array of forecasts
-        val dailyArray = jsonResponse.getJSONArray("daily")
-        for (i in 0 until dailyArray.length()) {
-            val dayForecast = dailyArray.getJSONObject(i)
-            val temp = dayForecast.getJSONObject("temp").getDouble("day")
-            val status = dayForecast.getJSONArray("weather").getJSONObject(0).getString("description")
+        val list = jsonResponse.getJSONArray("list")
+        val dailyMap = mutableMapOf<String, MutableList<JSONObject>>()
 
-            // Convert the timestamp to a readable day format
-            val day = java.text.SimpleDateFormat("EEE", java.util.Locale.ENGLISH).format(java.util.Date(dayForecast.getLong("dt") * 1000))
+        // Group forecast data by day
+        for (i in 0 until list.length()) {
+            val forecast = list.getJSONObject(i)
+            val date = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.ENGLISH).format(java.util.Date(forecast.getLong("dt") * 1000))
+            if (!dailyMap.containsKey(date)) {
+                dailyMap[date] = mutableListOf()
+            }
+            dailyMap[date]!!.add(forecast)
+        }
+
+        // Process each day's forecasts
+        for ((date, forecasts) in dailyMap) {
+            val dayForecast = forecasts[0]
+            val temp = dayForecast.getJSONObject("main").getDouble("temp")
+            val status = dayForecast.getJSONArray("weather").getJSONObject(0).getString("description")
+            val day = java.text.SimpleDateFormat("EEE, dd MMM", java.util.Locale.ENGLISH).format(java.util.Date(dayForecast.getLong("dt") * 1000))
 
             forecastList.add(ForecastItem(day, temp, status))
         }
