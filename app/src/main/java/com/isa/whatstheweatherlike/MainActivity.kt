@@ -41,6 +41,10 @@ class MainActivity : AppCompatActivity() {
     private var tvWind: TextView? = null
     private var weatherIcon: ImageView? = null
 
+    private var tvDewPoint: TextView? = null
+    private var tvVisibility: TextView? = null
+    private var tvUVIndex: TextView? = null
+
     private var sunriseTime: Long = 0
     private var sunsetTime: Long = 0
 
@@ -61,6 +65,10 @@ class MainActivity : AppCompatActivity() {
         tvHumidity = findViewById(R.id.humidity)
         tvPressure = findViewById(R.id.preasure)
         tvWind = findViewById(R.id.wind)
+
+        tvUVIndex = findViewById(R.id.uv_text)
+        tvDewPoint = findViewById(R.id.dew_point_text)
+        tvVisibility = findViewById(R.id.visibility_txt)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
@@ -104,24 +112,33 @@ class MainActivity : AppCompatActivity() {
             try {
                 val response = URL("https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$API_KEY&units=metric").readText()
                 val responseForecast = URL("https://api.openweathermap.org/data/2.5/forecast?lat=$latitude&lon=$longitude&appid=$API_KEY&units=metric").readText()
+                val responseUV = URL("https://api.openweathermap.org/data/2.5/uvi?lat=$latitude&lon=$longitude&appid=$API_KEY").readText()
                 val jsonObj = JSONObject(response)
                 val jsonResponse = JSONObject(responseForecast)
+                val jsonUV = JSONObject(responseUV)
 
                 val main = jsonObj.getJSONObject("main")
                 val weather = jsonObj.getJSONArray("weather").getJSONObject(0)
                 val wind = jsonObj.getJSONObject("wind")
                 val sys = jsonObj.getJSONObject("sys")
 
-                val temp = main.getString("temp")
+                val temp = main.getDouble("temp")
                 val tempMin = main.getString("temp_min")
                 val tempMax = main.getString("temp_max")
                 val pressure = main.getString("pressure")
-                val humidity = main.getString("humidity")
+                val humidity = main.getInt("humidity")
                 val status = weather.getString("description")
                 val windSpeed = wind.getString("speed")
+                val visibility = jsonObj.getInt("visibility") / 1000  // Convert meters to kilometers
                 val city = jsonObj.getString("name")
                 val country = sys.getString("country")
                 val updatedAt = jsonObj.getLong("dt")
+
+                // Calculate dew point
+                val dewPoint = calculateDewPoint(temp, humidity)
+
+                val uvIndex = jsonUV.getString("value")
+
                 sunriseTime = sys.getLong("sunrise")
                 sunsetTime = sys.getLong("sunset")
 
@@ -136,6 +153,9 @@ class MainActivity : AppCompatActivity() {
                     tvPressure!!.text = "$pressure hPa"
                     tvHumidity!!.text = "$humidity %"
                     tvWind!!.text = "$windSpeed m/s"
+                    tvUVIndex!!.text = uvIndex
+                    tvDewPoint!!.text = String.format("%.2f°C", dewPoint)
+                    tvVisibility!!.text = "${visibility} km"
                     weatherIcon!!.setImageResource(getWeatherIcon(status, updatedAt))
 
                     // Parse daily forecast and set it to RecyclerView
@@ -145,12 +165,12 @@ class MainActivity : AppCompatActivity() {
                         recyclerView.adapter = WeatherForecastAdapter(forecastList)
                         recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
                     } else {
-                        Log.e("MainActivity", "No forecast data available")
+                        Toast.makeText(this, "Error getting Forecast", Toast.LENGTH_SHORT).show()
                     }
                 }
 
             } catch (e: Exception) {
-                Log.e("MainActivity", "Error fetching weather data", e)
+                Toast.makeText(this, "Error getting data", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -210,4 +230,12 @@ class MainActivity : AppCompatActivity() {
 
         return forecastList
     }
+
+    private fun calculateDewPoint(temp: Double, humidity: Int): Double {
+        val a = 17.625
+        val b = 243.04
+        val alpha = ((a * temp) / (b + temp)) + Math.log(humidity / 100.0)
+        return (b * alpha) / (a - alpha)
+    }
+
 }
