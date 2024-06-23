@@ -226,7 +226,14 @@ class MainActivity : AppCompatActivity() {
 
         // Process each day's forecasts
         for ((date, forecasts) in dailyMap) {
-            val dayForecast = forecasts[0]
+            // Find the forecast closest to midday
+            val midday = forecasts.minByOrNull { forecast ->
+                val forecastTime = java.util.Date(forecast.getLong("dt") * 1000)
+                val diff = Math.abs(forecastTime.hours - 12)
+                diff
+            }
+
+            val dayForecast = midday ?: forecasts[0]
             val temp = dayForecast.getJSONObject("main").getDouble("temp")
             val status = dayForecast.getJSONArray("weather").getJSONObject(0).getString("description")
             val day = java.text.SimpleDateFormat("EEE, dd MMM", java.util.Locale.ENGLISH).format(java.util.Date(dayForecast.getLong("dt") * 1000))
