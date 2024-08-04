@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1
-        private const val API_KEY = "56ab3e249da84168291bf5fa9c7d6538"
+        private const val API_KEY = "YOUR_API_KEY"
     }
 
     private var tvAppName: TextView? = null
